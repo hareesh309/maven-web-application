@@ -1,0 +1,28 @@
+node 
+  {
+    def mavenHome=tool name: "Maven3.6.3"
+    
+    stage('SRC Checkout')
+    {
+        git branch: 'development', credentialsId: '48b7d6b5-0f3a-4e18-93b0-e47a38992b1f', url: 'https://github.com/hareesh309/maven-web-application'
+    }
+    
+    stage('Mvn Package')
+    {
+        sh "${mavenHome}/bin/mvn clean package"
+    }
+    
+    stage('Sonar Quality Report')
+    {
+        sh "${mavenHome}/bin/mvn sonar:sonar"
+    }
+    
+    stage('Deploy to Tomcat')
+    {
+        sshagent(['50f2620c-496d-4670-b6f6-9e923a321fc0'])
+        {
+            sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@13.126.24.200:/opt/apache-tomcat-9.0.34/webapps/"
+        }
+    }
+    
+  }
